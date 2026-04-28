@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Tracker Board</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Task Tracker Board</h1>
+        <p>Jira-style board with drag-and-drop and local persistence</p>
+      </div>
+      <button id="new-task-btn" class="primary">+ Create Task</button>
+    </header>
+
+    <main>
+      <section class="board" id="board"></section>
+    </main>
+
+    <dialog id="task-dialog">
+      <form id="task-form" method="dialog">
+        <h2>Create task</h2>
+
+        <label>
+          Title
+          <input name="title" id="task-title" required maxlength="120" />
+        </label>
+
+        <label>
+          Description
+          <textarea name="description" id="task-desc" rows="4" maxlength="1000"></textarea>
+        </label>
+
+        <label>
+          Assignee
+          <input name="assignee" id="task-assignee" maxlength="60" />
+        </label>
+
+        <label>
+          Priority
+          <select name="priority" id="task-priority">
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+        </label>
+
+        <div class="dialog-actions">
+          <button value="cancel">Cancel</button>
+          <button class="primary" value="submit" type="submit">Add Task</button>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="task-template">
+      <article class="task-card" draggable="true">
+        <div class="task-head">
+          <h3 class="task-title"></h3>
+          <button class="delete-btn" title="Delete">✕</button>
+        </div>
+        <p class="task-description"></p>
+        <div class="task-meta">
+          <span class="badge priority"></span>
+          <span class="assignee"></span>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
