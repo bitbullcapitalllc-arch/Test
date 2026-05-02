@@ -4,18 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TaskFlow</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6366f1" />
+  <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 <div id="app">
 
-  <!-- Header -->
   <header class="header">
     <div class="header-left">
-      <div class="logo">
-        <span class="logo-icon">⚡</span>
-        <span class="logo-text">TaskFlow</span>
-      </div>
+      <div class="logo"><span class="logo-icon">⚡</span><span class="logo-text">TaskFlow</span></div>
       <nav class="nav">
         <button class="nav-btn active" data-view="board">Board</button>
         <button class="nav-btn" data-view="backlog">Backlog</button>
@@ -29,140 +28,45 @@
     </div>
   </header>
 
-  <!-- Body -->
   <div class="body-wrap">
-
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-label">Sprints</div>
       <div id="sprint-list"></div>
     </aside>
-
-    <!-- Views -->
     <main class="content">
-
-      <!-- Board -->
       <div id="board-view" class="view">
-        <div class="view-header">
-          <h2 id="board-title">Board</h2>
-          <div class="view-filters">
-            <select id="board-priority-filter">
-              <option value="all">All Priorities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-        </div>
+        <div class="view-header"><h2 id="board-title">Board</h2><div class="view-filters"><select id="board-priority-filter"><option value="all">All Priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div></div>
         <div class="board-columns">
-          <div class="board-column" data-status="todo">
-            <div class="col-header"><span class="col-title">To Do</span><span class="col-count" id="count-todo">0</span></div>
-            <div class="col-tasks" id="col-todo"></div>
-          </div>
-          <div class="board-column" data-status="inprogress">
-            <div class="col-header"><span class="col-title">In Progress</span><span class="col-count" id="count-inprogress">0</span></div>
-            <div class="col-tasks" id="col-inprogress"></div>
-          </div>
-          <div class="board-column" data-status="inreview">
-            <div class="col-header"><span class="col-title">In Review</span><span class="col-count" id="count-inreview">0</span></div>
-            <div class="col-tasks" id="col-inreview"></div>
-          </div>
-          <div class="board-column" data-status="done">
-            <div class="col-header"><span class="col-title">Done</span><span class="col-count" id="count-done">0</span></div>
-            <div class="col-tasks" id="col-done"></div>
-          </div>
+          <div class="board-column" data-status="todo"><div class="col-header"><span class="col-title">To Do</span><span class="col-count" id="count-todo">0</span></div><div class="col-tasks" id="col-todo"></div></div>
+          <div class="board-column" data-status="inprogress"><div class="col-header"><span class="col-title">In Progress</span><span class="col-count" id="count-inprogress">0</span></div><div class="col-tasks" id="col-inprogress"></div></div>
+          <div class="board-column" data-status="inreview"><div class="col-header"><span class="col-title">In Review</span><span class="col-count" id="count-inreview">0</span></div><div class="col-tasks" id="col-inreview"></div></div>
+          <div class="board-column" data-status="done"><div class="col-header"><span class="col-title">Done</span><span class="col-count" id="count-done">0</span></div><div class="col-tasks" id="col-done"></div></div>
         </div>
       </div>
-
-      <!-- Backlog -->
       <div id="backlog-view" class="view hidden">
-        <div class="view-header">
-          <h2>Backlog</h2>
-          <div class="view-filters">
-            <select id="bl-status-filter">
-              <option value="all">All Statuses</option>
-              <option value="todo">To Do</option>
-              <option value="inprogress">In Progress</option>
-              <option value="inreview">In Review</option>
-              <option value="done">Done</option>
-            </select>
-            <select id="bl-priority-filter">
-              <option value="all">All Priorities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-        </div>
+        <div class="view-header"><h2>Backlog</h2><div class="view-filters"><select id="bl-status-filter"><option value="all">All Statuses</option><option value="todo">To Do</option><option value="inprogress">In Progress</option><option value="inreview">In Review</option><option value="done">Done</option></select><select id="bl-priority-filter"><option value="all">All Priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div></div>
         <div id="backlog-list" class="backlog-list"></div>
       </div>
-
-      <!-- Sprints -->
       <div id="sprints-view" class="view hidden">
         <div class="view-header"><h2>Sprints</h2></div>
         <div id="sprints-list" class="sprints-list"></div>
       </div>
-
     </main>
   </div>
 
 </div>
 
-<!-- Task Modal -->
-<div id="task-modal" class="modal hidden">
-  <div class="modal-backdrop" id="task-backdrop"></div>
-  <div class="modal-box">
-    <div class="modal-head">
-      <h3 id="task-modal-heading">Create Task</h3>
-      <button class="modal-close" id="task-modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="field"><label>Title *</label><input type="text" id="t-title" placeholder="What needs to be done?" /></div>
-      <div class="field"><label>Description</label><textarea id="t-desc" rows="3" placeholder="Add more detail…"></textarea></div>
-      <div class="field-row">
-        <div class="field"><label>Status</label><select id="t-status"><option value="todo">To Do</option><option value="inprogress">In Progress</option><option value="inreview">In Review</option><option value="done">Done</option></select></div>
-        <div class="field"><label>Priority</label><select id="t-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="critical">Critical</option></select></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Sprint</label><select id="t-sprint"><option value="">Backlog (no sprint)</option></select></div>
-        <div class="field"><label>Story Points</label><input type="number" id="t-points" min="0" max="99" value="1" /></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Assignee</label><input type="text" id="t-assignee" placeholder="Name…" /></div>
-        <div class="field"><label>Due Date</label><input type="date" id="t-due" /></div>
-      </div>
-      <div class="field"><label>Labels <small>(comma separated)</small></label><input type="text" id="t-labels" placeholder="bug, feature, docs…" /></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" id="task-cancel-btn">Cancel</button>
-      <button class="btn btn-primary" id="task-save-btn">Create Task</button>
-    </div>
-  </div>
-</div>
+<div id="task-modal" class="modal hidden"><div class="modal-backdrop" id="task-backdrop"></div><div class="modal-box"><div class="modal-head"><h3 id="task-modal-heading">Create Task</h3><button class="modal-close" id="task-modal-close">✕</button></div><div class="modal-body"><div class="field"><label>Title *</label><input type="text" id="t-title" placeholder="What needs to be done?" /></div><div class="field"><label>Description</label><textarea id="t-desc" rows="3" placeholder="Add more detail…"></textarea></div><div class="field-row"><div class="field"><label>Status</label><select id="t-status"><option value="todo">To Do</option><option value="inprogress">In Progress</option><option value="inreview">In Review</option><option value="done">Done</option></select></div><div class="field"><label>Priority</label><select id="t-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="critical">Critical</option></select></div></div><div class="field-row"><div class="field"><label>Sprint</label><select id="t-sprint"><option value="">Backlog (no sprint)</option></select></div><div class="field"><label>Story Points</label><input type="number" id="t-points" min="0" max="99" value="1" /></div></div><div class="field-row"><div class="field"><label>Assignee</label><input type="text" id="t-assignee" placeholder="Name…" /></div><div class="field"><label>Due Date</label><input type="date" id="t-due" /></div></div><div class="field"><label>Labels <small>(comma separated)</small></label><input type="text" id="t-labels" placeholder="bug, feature, docs…" /></div></div><div class="modal-foot"><button class="btn btn-ghost" id="task-cancel-btn">Cancel</button><button class="btn btn-primary" id="task-save-btn">Create Task</button></div></div></div>
 
-<!-- Sprint Modal -->
-<div id="sprint-modal" class="modal hidden">
-  <div class="modal-backdrop" id="sprint-backdrop"></div>
-  <div class="modal-box modal-sm">
-    <div class="modal-head">
-      <h3 id="sprint-modal-heading">Create Sprint</h3>
-      <button class="modal-close" id="sprint-modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="field"><label>Sprint Name *</label><input type="text" id="s-name" placeholder="Sprint name…" /></div>
-      <div class="field"><label>Sprint Type</label><div class="type-selector"><button class="type-btn" data-type="daily">Daily</button><button class="type-btn active" data-type="weekly">Weekly</button><button class="type-btn" data-type="monthly">Monthly</button></div></div>
-      <div class="field"><label>Start Date</label><input type="date" id="s-start" /></div>
-      <div class="field"><label>Goal</label><textarea id="s-goal" rows="2" placeholder="Sprint goal…"></textarea></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" id="sprint-cancel-btn">Cancel</button>
-      <button class="btn btn-primary" id="sprint-save-btn">Create Sprint</button>
-    </div>
-  </div>
-</div>
+<div id="sprint-modal" class="modal hidden"><div class="modal-backdrop" id="sprint-backdrop"></div><div class="modal-box modal-sm"><div class="modal-head"><h3 id="sprint-modal-heading">Create Sprint</h3><button class="modal-close" id="sprint-modal-close">✕</button></div><div class="modal-body"><div class="field"><label>Sprint Name *</label><input type="text" id="s-name" placeholder="Sprint name…" /></div><div class="field"><label>Sprint Type</label><div class="type-selector"><button class="type-btn" data-type="daily">Daily</button><button class="type-btn active" data-type="weekly">Weekly</button><button class="type-btn" data-type="monthly">Monthly</button></div></div><div class="field"><label>Start Date</label><input type="date" id="s-start" /></div><div class="field"><label>Goal</label><textarea id="s-goal" rows="2" placeholder="Sprint goal…"></textarea></div></div><div class="modal-foot"><button class="btn btn-ghost" id="sprint-cancel-btn">Cancel</button><button class="btn btn-primary" id="sprint-save-btn">Create Sprint</button></div></div></div>
 
 <script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
 </body>
 </html>
