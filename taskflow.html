@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow</title>
+  <meta name="theme-color" content="#6366f1" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="TaskFlow" />
+  <style>
+/* ---- Variables ---- */
+:root {
+  --primary:        #6366f1;
+  --primary-dark:   #4f46e5;
+  --bg:             #f8fafc;
+  --surface:        #ffffff;
+  --surface-2:      #f1f5f9;
+  --border:         #e2e8f0;
+  --text:           #0f172a;
+  --text-2:         #64748b;
+  --text-3:         #94a3b8;
+
+  --c-critical:     #ef4444;
+  --c-high:         #f97316;
+  --c-medium:       #eab308;
+  --c-low:          #22c55e;
+
+  --c-daily:        #06b6d4;
+  --c-weekly:       #8b5cf6;
+  --c-monthly:      #ec4899;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 8px rgba(0,0,0,.09);
+  --shadow-lg: 0 12px 24px rgba(0,0,0,.12);
+
+  --r:    6px;
+  --r-lg: 12px;
+}
+
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+/* ---- Header ---- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding: 0 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  z-index: 50;
+}
+
+.header-left  { display: flex; align-items: center; gap: 20px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.logo { display: flex; align-items: center; gap: 7px; text-decoration: none; }
+.logo-icon { font-size: 18px; }
+.logo-text  { font-size: 17px; font-weight: 700; color: var(--primary); letter-spacing: -.5px; }
+
+.nav { display: flex; gap: 2px; }
+.nav-btn {
+  padding: 5px 13px;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.nav-btn:hover  { background: var(--surface-2); color: var(--text); }
+.nav-btn.active { background: var(--surface-2); color: var(--primary); font-weight: 600; }
+
+.search-input {
+  padding: 6px 11px;
+  width: 200px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-size: 13px;
+  background: var(--bg);
+  outline: none;
+  transition: border-color .12s;
+}
+.search-input:focus { border-color: var(--primary); }
+
+/* ---- Buttons ---- */
+.btn {
+  padding: 6px 13px;
+  border: none;
+  border-radius: var(--r);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, opacity .12s;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-ghost     { background: transparent; color: var(--text-2); }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn-danger    { background: #fee2e2; color: var(--c-critical); }
+.btn-danger:hover { background: #fecaca; }
+.btn-success   { background: #dcfce7; color: #15803d; }
+.btn-success:hover { background: #bbf7d0; }
+.btn-sm { padding: 4px 9px; font-size: 12px; }
+
+/* ---- Layout ---- */
+.body-wrap { display: flex; flex: 1; overflow: hidden; }
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 210px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 14px 10px;
+}
+
+.sidebar-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--text-3);
+  padding: 0 6px 8px;
+}
+
+.sp-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px;
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: background .1s;
+  margin-bottom: 2px;
+}
+.sp-item:hover  { background: var(--surface-2); }
+.sp-item.active { background: #eef2ff; }
+
+.sp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.sp-info       { flex: 1; min-width: 0; }
+.sp-name       { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-sub        { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+.sp-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.sp-badge-planned   { background: #f1f5f9; color: var(--text-2); }
+.sp-badge-active    { background: #dcfce7; color: #15803d; }
+.sp-badge-completed { background: #e0e7ff; color: #4338ca; }
+
+/* ---- Content ---- */
+.content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+.view { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 18px 20px 0; }
+.view.hidden { display: none !important; }
+
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.view-header h2 { font-size: 19px; font-weight: 700; }
+
+.view-filters { display: flex; gap: 7px; }
+.view-filters select {
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-size: 12.5px;
+  background: var(--surface);
+  cursor: pointer;
+  outline: none;
+}
+
+/* ---- Board ---- */
+.board-columns {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 14px;
+}
+
+.board-column {
+  flex: 1;
+  min-width: 230px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.col-title { font-size: 12px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .5px; }
+.col-count {
+  font-size: 11px; font-weight: 700;
+  background: var(--border); color: var(--text-2);
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.col-tasks {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* drag-over highlight */
+.col-tasks.drag-over { background: #e0e7ff40; outline: 2px dashed var(--primary); border-radius: 6px; }
+
+/* ---- Task Card ---- */
+.task-card {
+  background: var(--surface);
+  border-radius: var(--r);
+  padding: 11px 12px;
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition: box-shadow .12s, transform .12s;
+  border-left: 3px solid transparent;
+  position: relative;
+  animation: fadeUp .18s ease;
+}
+.task-card:active { cursor: grabbing; }
+.task-card:hover  { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.task-card.dragging { opacity: .45; }
+
+.task-card.priority-critical { border-left-color: var(--c-critical); }
+.task-card.priority-high     { border-left-color: var(--c-high); }
+.task-card.priority-medium   { border-left-color: var(--c-medium); }
+.task-card.priority-low      { border-left-color: var(--c-low); }
+
+.card-title { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 8px; }
+
+.card-meta { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+
+.pri-badge {
+  font-size: 9.5px; font-weight: 700;
+  padding: 2px 6px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: .4px;
+}
+.pri-badge.critical { background: #fee2e2; color: var(--c-critical); }
+.pri-badge.high     { background: #ffedd5; color: var(--c-high); }
+.pri-badge.medium   { background: #fef9c3; color: #854d0e; }
+.pri-badge.low      { background: #dcfce7; color: #14532d; }
+
+.pts-badge { font-size: 11px; font-weight: 600; color: var(--text-3); background: var(--surface-2); padding: 2px 5px; border-radius: 3px; }
+
+.label-chip { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: #e0e7ff; color: #3730a3; font-weight: 500; }
+
+.card-footer { display: flex; align-items: center; gap: 6px; }
+
+.assignee-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.assignee-avatar .tip {
+  position: absolute; bottom: calc(100% + 4px); left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b; color: #fff; font-size: 11px;
+  padding: 3px 7px; border-radius: 4px;
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity .12s;
+}
+.assignee-avatar:hover .tip { opacity: 1; }
+
+.due-label { font-size: 11px; color: var(--text-3); }
+.due-label.overdue { color: var(--c-critical); font-weight: 600; }
+
+.advance-btn {
+  margin-left: auto;
+  font-size: 11px; padding: 3px 7px;
+  border: 1px solid var(--border); border-radius: 3px;
+  background: var(--surface); cursor: pointer; color: var(--text-2);
+  transition: background .12s, color .12s, border-color .12s;
+}
+.advance-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* hover actions */
+.card-actions {
+  position: absolute; top: 8px; right: 8px;
+  display: none; gap: 3px;
+}
+.task-card:hover .card-actions { display: flex; }
+.card-action {
+  width: 20px; height: 20px; border: none; border-radius: 3px;
+  background: var(--surface-2); color: var(--text-3);
+  font-size: 11px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .1s, color .1s;
+}
+.card-action:hover              { background: var(--border); color: var(--text); }
+.card-action.del:hover          { background: #fee2e2; color: var(--c-critical); }
+
+/* ---- Backlog ---- */
+.backlog-list { flex: 1; overflow-y: auto; padding-bottom: 14px; }
+
+.bl-section { margin-bottom: 18px; }
+
+.bl-section-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  margin-bottom: 4px;
+}
+.bl-section-head h4 { font-size: 13.5px; font-weight: 600; }
+.bl-task-count { font-size: 12px; color: var(--text-3); margin-left: auto; }
+
+.bl-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: border-color .1s, box-shadow .1s;
+}
+.bl-row:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+
+.bl-title { flex: 1; font-size: 13.5px; font-weight: 500; }
+.bl-meta  { display: flex; align-items: center; gap: 7px; }
+
+.status-chip {
+  font-size: 11px; font-weight: 500;
+  padding: 2px 8px; border-radius: 10px;
+}
+.status-chip.todo       { background: #f1f5f9; color: var(--text-2); }
+.status-chip.inprogress { background: #eef2ff; color: var(--primary); }
+.status-chip.inreview   { background: #fff7ed; color: var(--c-high); }
+.status-chip.done       { background: #dcfce7; color: #15803d; }
+
+/* ---- Sprints View ---- */
+.sprints-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-bottom: 20px; }
+
+.sprint-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.sc-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.sc-title { display: flex; align-items: center; gap: 9px; }
+.sc-name  { font-size: 15px; font-weight: 600; }
+.sc-actions { display: flex; gap: 6px; }
+
+.type-tag {
+  font-size: 10.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.type-tag.daily   { background: #cffafe; color: #0e7490; }
+.type-tag.weekly  { background: #ede9fe; color: #6d28d9; }
+.type-tag.monthly { background: #fce7f3; color: #9d174d; }
+
+.status-tag {
+  font-size: 10.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px;
+  text-transform: uppercase; letter-spacing: .4px;
+}
+.status-tag.planned   { background: #f1f5f9; color: var(--text-2); }
+.status-tag.active    { background: #dcfce7; color: #15803d; }
+.status-tag.completed { background: #e0e7ff; color: #4338ca; }
+
+.sc-goal {
+  padding: 8px 18px;
+  font-size: 12.5px; color: var(--text-2);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.sc-stats {
+  display: flex; gap: 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.sc-stat {
+  flex: 1; padding: 10px 18px;
+  border-right: 1px solid var(--border);
+}
+.sc-stat:last-child { border-right: none; }
+.sc-stat-label { font-size: 10.5px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+.sc-stat-value { font-size: 14px; font-weight: 700; color: var(--text); margin-top: 2px; }
+.sc-stat-value.warn   { color: var(--c-high); }
+.sc-stat-value.danger { color: var(--c-critical); }
+
+.sc-progress { padding: 8px 18px; }
+.progress-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width .3s; }
+
+.sc-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 18px 14px; }
+.sc-chip {
+  font-size: 12px; padding: 4px 10px;
+  border-radius: var(--r); background: var(--surface-2); color: var(--text-2);
+  cursor: pointer; border: 1px solid var(--border);
+  transition: background .1s;
+}
+.sc-chip:hover { background: var(--border); }
+
+/* ---- Modals ---- */
+.modal {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal.hidden { display: none; }
+
+.modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(15,23,42,.45);
+  backdrop-filter: blur(3px);
+}
+
+.modal-box {
+  position: relative; z-index: 1;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  width: 540px; max-width: 96vw; max-height: 92vh;
+  display: flex; flex-direction: column;
+}
+.modal-sm { width: 420px; }
+
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-head h3 { font-size: 17px; font-weight: 600; }
+
+.modal-close {
+  background: none; border: none; font-size: 16px;
+  color: var(--text-3); cursor: pointer;
+  padding: 3px 6px; border-radius: 4px;
+  transition: background .1s, color .1s;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text); }
+
+.modal-body {
+  padding: 18px 22px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.modal-foot {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+}
+
+/* ---- Forms ---- */
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+.field small  { font-weight: 400; color: var(--text-3); }
+
+.field input,
+.field select,
+.field textarea {
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--bg);
+  font-family: inherit;
+  outline: none;
+  transition: border-color .12s;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus { border-color: var(--primary); }
+.field textarea { resize: vertical; }
+.field input.error { border-color: var(--c-critical); }
+
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; }
+
+/* Sprint type selector */
+.type-selector { display: flex; gap: 7px; }
+.type-btn {
+  flex: 1; padding: 8px;
+  border: 2px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; color: var(--text-2);
+  transition: border-color .12s, background .12s, color .12s;
+}
+.type-btn:hover { border-color: var(--primary); color: var(--primary); }
+.type-btn[data-type="daily"].active   { border-color: var(--c-daily);   background: #cffafe; color: #0e7490; }
+.type-btn[data-type="weekly"].active  { border-color: var(--c-weekly);  background: #ede9fe; color: #6d28d9; }
+.type-btn[data-type="monthly"].active { border-color: var(--c-monthly); background: #fce7f3; color: #9d174d; }
+
+/* ---- Empty State ---- */
+.empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 36px 20px;
+  color: var(--text-3); text-align: center; gap: 6px;
+}
+.empty-icon { font-size: 28px; }
+.empty-text { font-size: 13.5px; }
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* ---- Animations ---- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 860px) {
+  .sidebar { display: none; }
+}
+@media (max-width: 640px) {
+  .board-columns { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+  .board-column  { max-width: none; }
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">TaskFlow</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="board">Board</button>
+        <button class="nav-btn" data-view="backlog">Backlog</button>
+        <button class="nav-btn" data-view="sprints">Sprints</button>
+      </nav>
+    </div>
+    <div class="header-right">
+      <input type="text" id="search-input" class="search-input" placeholder="Search tasks…" />
+      <button class="btn btn-secondary" id="new-sprint-btn">+ Sprint</button>
+      <button class="btn btn-primary" id="new-task-btn">+ Task</button>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="body-wrap">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-label">Sprints</div>
+      <div id="sprint-list"></div>
+    </aside>
+
+    <!-- Views -->
+    <main class="content">
+
+      <!-- Board -->
+      <div id="board-view" class="view">
+        <div class="view-header">
+          <h2 id="board-title">Board</h2>
+          <div class="view-filters">
+            <select id="board-priority-filter">
+              <option value="all">All Priorities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="board-columns">
+          <div class="board-column" data-status="todo">
+            <div class="col-header">
+              <span class="col-title">To Do</span>
+              <span class="col-count" id="count-todo">0</span>
+            </div>
+            <div class="col-tasks" id="col-todo"></div>
+          </div>
+          <div class="board-column" data-status="inprogress">
+            <div class="col-header">
+              <span class="col-title">In Progress</span>
+              <span class="col-count" id="count-inprogress">0</span>
+            </div>
+            <div class="col-tasks" id="col-inprogress"></div>
+          </div>
+          <div class="board-column" data-status="inreview">
+            <div class="col-header">
+              <span class="col-title">In Review</span>
+              <span class="col-count" id="count-inreview">0</span>
+            </div>
+            <div class="col-tasks" id="col-inreview"></div>
+          </div>
+          <div class="board-column" data-status="done">
+            <div class="col-header">
+              <span class="col-title">Done</span>
+              <span class="col-count" id="count-done">0</span>
+            </div>
+            <div class="col-tasks" id="col-done"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backlog -->
+      <div id="backlog-view" class="view hidden">
+        <div class="view-header">
+          <h2>Backlog</h2>
+          <div class="view-filters">
+            <select id="bl-status-filter">
+              <option value="all">All Statuses</option>
+              <option value="todo">To Do</option>
+              <option value="inprogress">In Progress</option>
+              <option value="inreview">In Review</option>
+              <option value="done">Done</option>
+            </select>
+            <select id="bl-priority-filter">
+              <option value="all">All Priorities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div id="backlog-list" class="backlog-list"></div>
+      </div>
+
+      <!-- Sprints -->
+      <div id="sprints-view" class="view hidden">
+        <div class="view-header">
+          <h2>Sprints</h2>
+        </div>
+        <div id="sprints-list" class="sprints-list"></div>
+      </div>
+
+    </main>
+  </div><!-- /body-wrap -->
+
+</div><!-- /app -->
+
+<!-- Task Modal -->
+<div id="task-modal" class="modal hidden">
+  <div class="modal-backdrop" id="task-backdrop"></div>
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="task-modal-heading">Create Task</h3>
+      <button class="modal-close" id="task-modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Title *</label>
+        <input type="text" id="t-title" placeholder="What needs to be done?" />
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="t-desc" rows="3" placeholder="Add more detail…"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Status</label>
+          <select id="t-status">
+            <option value="todo">To Do</option>
+            <option value="inprogress">In Progress</option>
+            <option value="inreview">In Review</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Priority</label>
+          <select id="t-priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Sprint</label>
+          <select id="t-sprint">
+            <option value="">Backlog (no sprint)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Story Points</label>
+          <input type="number" id="t-points" min="0" max="99" value="1" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Assignee</label>
+          <input type="text" id="t-assignee" placeholder="Name…" />
+        </div>
+        <div class="field">
+          <label>Due Date</label>
+          <input type="date" id="t-due" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Labels <small>(comma separated)</small></label>
+        <input type="text" id="t-labels" placeholder="bug, feature, docs…" />
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="task-cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="task-save-btn">Create Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sprint Modal -->
+<div id="sprint-modal" class="modal hidden">
+  <div class="modal-backdrop" id="sprint-backdrop"></div>
+  <div class="modal-box modal-sm">
+    <div class="modal-head">
+      <h3 id="sprint-modal-heading">Create Sprint</h3>
+      <button class="modal-close" id="sprint-modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Sprint Name *</label>
+        <input type="text" id="s-name" placeholder="Sprint name…" />
+      </div>
+      <div class="field">
+        <label>Sprint Type</label>
+        <div class="type-selector">
+          <button class="type-btn" data-type="daily">Daily</button>
+          <button class="type-btn active" data-type="weekly">Weekly</button>
+          <button class="type-btn" data-type="monthly">Monthly</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Start Date</label>
+        <input type="date" id="s-start" />
+      </div>
+      <div class="field">
+        <label>Goal</label>
+        <textarea id="s-goal" rows="2" placeholder="Sprint goal…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="sprint-cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="sprint-save-btn">Create Sprint</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ─── Storage ──────────────────────────────────────────────────────────────────
+const STORE_KEY = 'taskflow_v2';
+
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify({ tasks: st.tasks, sprints: st.sprints }));
+}
+
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    st.tasks   = Array.isArray(d.tasks)   ? d.tasks   : [];
+    st.sprints = Array.isArray(d.sprints) ? d.sprints : [];
+    if (!st.tasks.length && !st.sprints.length) seed();
+  } catch { seed(); }
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+const st = {
+  tasks:          [],
+  sprints:        [],
+  view:           'board',
+  selectedSprint: null,   // sprint id or null = "all"
+  editingTask:    null,
+  editingSprint:  null,
+  sprintType:     'weekly',
+  filters: { priority: 'all', status: 'all', search: '' },
+};
+
+// ─── ID / Date helpers ────────────────────────────────────────────────────────
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const today = () => new Date().toISOString().split('T')[0];
+
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+
+function sprintEnd(start, type) {
+  if (type === 'daily')   return addDays(start, 1);
+  if (type === 'weekly')  return addDays(start, 7);
+  if (type === 'monthly') return addDays(start, 30);
+  return addDays(start, 7);
+}
+
+function daysLeft(end) {
+  const ms = new Date(end + 'T23:59:59') - Date.now();
+  return Math.ceil(ms / 86400000);
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function isOverdue(d) {
+  return d && new Date(d + 'T23:59:59') < Date.now();
+}
+
+// ─── Task CRUD ────────────────────────────────────────────────────────────────
+function addTask(data) {
+  const t = {
+    id: uid(), title: data.title, description: data.description || '',
+    status: data.status || 'todo', priority: data.priority || 'medium',
+    sprintId: data.sprintId || null, storyPoints: Number(data.storyPoints) || 1,
+    labels: data.labels || [], assignee: data.assignee || '',
+    dueDate: data.dueDate || null,
+    createdAt: new Date().toISOString(),
+  };
+  st.tasks.unshift(t);
+  save();
+  return t.id;
+}
+
+function editTask(id, patch) {
+  const i = st.tasks.findIndex(t => t.id === id);
+  if (i < 0) return;
+  st.tasks[i] = { ...st.tasks[i], ...patch };
+  save();
+}
+
+function removeTask(id) {
+  st.tasks = st.tasks.filter(t => t.id !== id);
+  save();
+}
+
+// ─── Sprint CRUD ──────────────────────────────────────────────────────────────
+function addSprint(data) {
+  const start = data.startDate || today();
+  const sp = {
+    id: uid(), name: data.name,
+    type: data.type || 'weekly',
+    startDate: start, endDate: sprintEnd(start, data.type || 'weekly'),
+    goal: data.goal || '', status: data.status || 'planned',
+  };
+  st.sprints.push(sp);
+  save();
+  return sp.id;
+}
+
+function editSprint(id, patch) {
+  const i = st.sprints.findIndex(s => s.id === id);
+  if (i < 0) return;
+  st.sprints[i] = { ...st.sprints[i], ...patch };
+  // Recalc end date if start or type changed
+  const s = st.sprints[i];
+  st.sprints[i].endDate = sprintEnd(s.startDate, s.type);
+  save();
+}
+
+function removeSprint(id) {
+  st.tasks.forEach(t => { if (t.sprintId === id) editTask(t.id, { sprintId: null }); });
+  st.sprints = st.sprints.filter(s => s.id !== id);
+  save();
+}
+
+// ─── Seed data ────────────────────────────────────────────────────────────────
+function seed() {
+  const s1 = addSprint({ name: 'Sprint 1', type: 'weekly',  startDate: today(), goal: 'Ship the MVP',          status: 'active'  });
+  const s2 = addSprint({ name: 'Daily Fix', type: 'daily',  startDate: today(), goal: 'Patch critical bugs',   status: 'active'  });
+  const s3 = addSprint({ name: 'Q2 Plan',   type: 'monthly',startDate: today(), goal: 'Roadmap for Q2 launch', status: 'planned' });
+
+  [
+    { title: 'Set up CI/CD pipeline',        description: 'Configure GitHub Actions for deploy',   priority: 'high',     status: 'done',       sprintId: s1, storyPoints: 5, labels: ['devops'],         assignee: 'Alex'   },
+    { title: 'Design system docs',           description: 'Document all components & tokens',      priority: 'medium',   status: 'inreview',   sprintId: s1, storyPoints: 3, labels: ['docs','design'],   assignee: 'Sam'    },
+    { title: 'User authentication flow',     description: 'OAuth 2.0 with Google and GitHub',      priority: 'critical', status: 'inprogress', sprintId: s1, storyPoints: 8, labels: ['auth','security'],  assignee: 'Jordan' },
+    { title: 'Fix login redirect bug',       description: 'Redirect not firing after login',       priority: 'critical', status: 'inprogress', sprintId: s2, storyPoints: 2, labels: ['bug'],              assignee: 'Alex'   },
+    { title: 'Dashboard analytics widget',   description: 'Add charts for key metrics',            priority: 'medium',   status: 'todo',       sprintId: s1, storyPoints: 3, labels: ['feature'],         assignee: 'Sam'    },
+    { title: 'Mobile responsive layout',     description: 'All pages must work on mobile',         priority: 'high',     status: 'todo',       sprintId: s2, storyPoints: 5, labels: ['mobile','ui'],      assignee: 'Jordan' },
+    { title: 'Performance optimisation',     description: 'Improve page load with lazy loading',   priority: 'high',     status: 'todo',       sprintId: s1, storyPoints: 5, labels: ['performance'],     assignee: ''       },
+    { title: 'API rate limiting',            description: 'Prevent abuse with rate limits',        priority: 'low',      status: 'todo',       sprintId: null, storyPoints: 3, labels: ['api','security'], assignee: ''       },
+    { title: 'Email notification system',    description: 'Send alerts for important events',      priority: 'medium',   status: 'todo',       sprintId: null, storyPoints: 5, labels: ['feature'],        assignee: ''       },
+    { title: 'Data export (CSV / JSON)',     description: 'Let users export their data',           priority: 'low',      status: 'todo',       sprintId: null, storyPoints: 3, labels: ['feature'],        assignee: ''       },
+  ].forEach(t => addTask(t));
+}
+
+// ─── Filtering ────────────────────────────────────────────────────────────────
+function applyFilters(tasks) {
+  return tasks.filter(t => {
+    if (st.filters.priority !== 'all' && t.priority !== st.filters.priority) return false;
+    if (st.filters.status   !== 'all' && t.status   !== st.filters.status)   return false;
+    if (st.filters.search) {
+      const q = st.filters.search.toLowerCase();
+      if (!t.title.toLowerCase().includes(q) && !(t.description || '').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function boardTasks() {
+  let pool = st.selectedSprint ? st.tasks.filter(t => t.sprintId === st.selectedSprint) : st.tasks;
+  return applyFilters(pool);
+}
+
+// ─── XSS-safe escape ─────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Render helpers ───────────────────────────────────────────────────────────
+const TYPE_COLORS = { daily: '#06b6d4', weekly: '#8b5cf6', monthly: '#ec4899' };
+const STATUS_LABELS = { todo: 'To Do', inprogress: 'In Progress', inreview: 'In Review', done: 'Done' };
+const NEXT_STATUS   = { todo: 'inprogress', inprogress: 'inreview', inreview: 'done', done: 'todo' };
+const NEXT_LABEL    = { todo: 'Start', inprogress: 'Review', inreview: 'Done', done: 'Reopen' };
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const el = document.getElementById('sprint-list');
+  const allActive = !st.selectedSprint;
+
+  let html = `
+    <div class="sp-item ${allActive ? 'active' : ''}" data-sid="__all__">
+      <div class="sp-dot" style="background:var(--text-3)"></div>
+      <div class="sp-info">
+        <div class="sp-name">All Tasks</div>
+        <div class="sp-sub">${st.tasks.length} tasks</div>
+      </div>
+    </div>`;
+
+  for (const sp of st.sprints) {
+    const cnt = st.tasks.filter(t => t.sprintId === sp.id).length;
+    html += `
+      <div class="sp-item ${st.selectedSprint === sp.id ? 'active' : ''}" data-sid="${sp.id}">
+        <div class="sp-dot" style="background:${TYPE_COLORS[sp.type]}"></div>
+        <div class="sp-info">
+          <div class="sp-name">${esc(sp.name)}</div>
+          <div class="sp-sub">${cnt} tasks · ${sp.type}</div>
+        </div>
+        <span class="sp-badge sp-badge-${sp.status}">${sp.status}</span>
+      </div>`;
+  }
+
+  el.innerHTML = html;
+
+  el.querySelectorAll('.sp-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const sid = item.dataset.sid;
+      st.selectedSprint = sid === '__all__' ? null : sid;
+      renderAll();
+    });
+  });
+}
+
+// ─── Board ────────────────────────────────────────────────────────────────────
+function renderBoard() {
+  const sp = st.selectedSprint ? st.sprints.find(s => s.id === st.selectedSprint) : null;
+  document.getElementById('board-title').textContent = sp ? sp.name : 'All Tasks';
+
+  const tasks = boardTasks();
+  const COLS = ['todo', 'inprogress', 'inreview', 'done'];
+
+  COLS.forEach(status => {
+    const col   = tasks.filter(t => t.status === status);
+    document.getElementById('count-' + status).textContent = col.length;
+    const el = document.getElementById('col-' + status);
+    el.innerHTML = col.length
+      ? col.map(taskCardHTML).join('')
+      : `<div class="empty"><div class="empty-text">No tasks</div></div>`;
+    attachCardEvents(el);
+  });
+}
+
+function taskCardHTML(t) {
+  const labels = t.labels.slice(0, 3).map(l => `<span class="label-chip">${esc(l)}</span>`).join('');
+  const avatar = t.assignee
+    ? `<div class="assignee-avatar">${esc(t.assignee[0].toUpperCase())}<span class="tip">${esc(t.assignee)}</span></div>`
+    : '';
+  const due = t.dueDate
+    ? `<span class="due-label ${isOverdue(t.dueDate) && t.status !== 'done' ? 'overdue' : ''}">${fmtDate(t.dueDate)}</span>`
+    : '';
+
+  return `
+    <div class="task-card priority-${t.priority}" draggable="true" data-id="${t.id}">
+      <div class="card-actions">
+        <button class="card-action edit" data-id="${t.id}" title="Edit">✎</button>
+        <button class="card-action del"  data-id="${t.id}" title="Delete">✕</button>
+      </div>
+      <div class="card-title">${esc(t.title)}</div>
+      <div class="card-meta">
+        <span class="pri-badge ${t.priority}">${t.priority}</span>
+        <span class="pts-badge">${t.storyPoints}pt</span>
+        ${labels}
+      </div>
+      <div class="card-footer">
+        ${avatar}${due}
+        <button class="advance-btn" data-id="${t.id}">${NEXT_LABEL[t.status]} →</button>
+      </div>
+    </div>`;
+}
+
+function attachCardEvents(container) {
+  // Drag & drop
+  container.querySelectorAll('.task-card[draggable]').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
+
+  // Click-to-edit (card body, not buttons)
+  container.querySelectorAll('.task-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('.card-action, .advance-btn')) return;
+      openEditTask(card.dataset.id);
+    });
+  });
+
+  // Edit / delete buttons
+  container.querySelectorAll('.card-action.edit').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); openEditTask(btn.dataset.id); }));
+  container.querySelectorAll('.card-action.del').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); confirmDeleteTask(btn.dataset.id); }));
+
+  // Advance button
+  container.querySelectorAll('.advance-btn').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); advanceTask(btn.dataset.id); }));
+}
+
+// Drop zones
+function initDropZones() {
+  document.querySelectorAll('.col-tasks').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      const col = zone.closest('.board-column');
+      if (!id || !col) return;
+      editTask(id, { status: col.dataset.status });
+      renderAll();
+    });
+  });
+}
+
+// ─── Backlog ──────────────────────────────────────────────────────────────────
+function renderBacklog() {
+  const el = document.getElementById('backlog-list');
+
+  const sections = [];
+  st.sprints.filter(s => s.status !== 'completed').forEach(sp => {
+    sections.push({ label: sp.name, badge: sp.type, tasks: applyFilters(st.tasks.filter(t => t.sprintId === sp.id)) });
+  });
+  sections.push({ label: 'Backlog', badge: null, tasks: applyFilters(st.tasks.filter(t => !t.sprintId)) });
+
+  if (sections.every(s => !s.tasks.length)) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tasks yet — create your first one!</div></div>`;
+    return;
+  }
+
+  el.innerHTML = sections.filter(s => s.tasks.length).map(sec => `
+    <div class="bl-section">
+      <div class="bl-section-head">
+        <h4>${esc(sec.label)}</h4>
+        ${sec.badge ? `<span class="type-tag ${sec.badge}">${sec.badge}</span>` : ''}
+        <span class="bl-task-count">${sec.tasks.length} task${sec.tasks.length !== 1 ? 's' : ''}</span>
+      </div>
+      ${sec.tasks.map(blRowHTML).join('')}
+    </div>`).join('');
+
+  el.querySelectorAll('.bl-row').forEach(row => {
+    row.querySelector('.del-bl')?.addEventListener('click', e => { e.stopPropagation(); confirmDeleteTask(row.dataset.id); });
+    row.addEventListener('click', e => { if (!e.target.closest('.del-bl')) openEditTask(row.dataset.id); });
+  });
+}
+
+function blRowHTML(t) {
+  return `
+    <div class="bl-row" data-id="${t.id}">
+      <span class="pri-badge ${t.priority}">${t.priority}</span>
+      <span class="bl-title">${esc(t.title)}</span>
+      <div class="bl-meta">
+        ${t.assignee ? `<span style="font-size:12px;color:var(--text-3)">${esc(t.assignee)}</span>` : ''}
+        <span class="pts-badge">${t.storyPoints}pt</span>
+        <span class="status-chip ${t.status}">${STATUS_LABELS[t.status]}</span>
+        <button class="btn btn-sm btn-ghost del-bl" style="padding:2px 6px">✕</button>
+      </div>
+    </div>`;
+}
+
+// ─── Sprints view ─────────────────────────────────────────────────────────────
+function renderSprints() {
+  const el = document.getElementById('sprints-list');
+
+  if (!st.sprints.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🚀</div><div class="empty-text">No sprints yet — create your first sprint!</div></div>`;
+    return;
+  }
+
+  const ORDER = { active: 0, planned: 1, completed: 2 };
+  const sorted = [...st.sprints].sort((a, b) => ORDER[a.status] - ORDER[b.status]);
+
+  el.innerHTML = sorted.map(sprintCardHTML).join('');
+
+  el.querySelectorAll('[data-sp-start]').forEach(btn => btn.addEventListener('click', () => {
+    editSprint(btn.dataset.spStart, { status: 'active' });
+    if (!st.selectedSprint) st.selectedSprint = btn.dataset.spStart;
+    renderAll();
+  }));
+  el.querySelectorAll('[data-sp-complete]').forEach(btn => btn.addEventListener('click', () => {
+    editSprint(btn.dataset.spComplete, { status: 'completed' });
+    renderAll();
+  }));
+  el.querySelectorAll('[data-sp-edit]').forEach(btn => btn.addEventListener('click', () => openEditSprint(btn.dataset.spEdit)));
+  el.querySelectorAll('[data-sp-del]').forEach(btn => btn.addEventListener('click', () => confirmDeleteSprint(btn.dataset.spDel)));
+
+  el.querySelectorAll('.sc-chip[data-task-id]').forEach(chip => {
+    chip.addEventListener('click', () => openEditTask(chip.dataset.taskId));
+  });
+  el.querySelectorAll('.sc-chip[data-more-sid]').forEach(chip => {
+    chip.addEventListener('click', () => { st.selectedSprint = chip.dataset.moreSid; switchView('board'); });
+  });
+}
+
+function sprintCardHTML(sp) {
+  const tasks    = st.tasks.filter(t => t.sprintId === sp.id);
+  const done     = tasks.filter(t => t.status === 'done');
+  const pct      = tasks.length ? Math.round(done.length / tasks.length * 100) : 0;
+  const left     = daysLeft(sp.endDate);
+  const totalPts = tasks.reduce((s, t) => s + t.storyPoints, 0);
+  const donePts  = done.reduce((s, t) => s + t.storyPoints, 0);
+
+  let actionHTML = '';
+  if (sp.status === 'planned')
+    actionHTML = `<button class="btn btn-sm btn-primary" data-sp-start="${sp.id}">Start Sprint</button>`;
+  else if (sp.status === 'active')
+    actionHTML = `<button class="btn btn-sm btn-success" data-sp-complete="${sp.id}">Complete</button>`;
+  else
+    actionHTML = `<span class="status-tag completed">Completed</span>`;
+
+  const chips = tasks.slice(0, 5).map(t => `
+    <div class="sc-chip" data-task-id="${t.id}">
+      <span class="pri-badge ${t.priority}" style="font-size:9px;padding:1px 4px">${t.priority[0].toUpperCase()}</span>
+      ${esc(t.title.length > 32 ? t.title.slice(0, 32) + '…' : t.title)}
+    </div>`).join('');
+  const moreChip = tasks.length > 5
+    ? `<div class="sc-chip" data-more-sid="${sp.id}">+${tasks.length - 5} more</div>` : '';
+
+  const leftVal  = left < 0 ? 'Overdue' : left === 0 ? 'Today' : `${left}d`;
+  const leftCls  = left < 0 ? 'danger' : left <= 2 ? 'warn' : '';
+
+  return `
+    <div class="sprint-card">
+      <div class="sc-head">
+        <div class="sc-title">
+          <span class="type-tag ${sp.type}">${sp.type}</span>
+          <span class="sc-name">${esc(sp.name)}</span>
+          <span class="status-tag ${sp.status}">${sp.status}</span>
+        </div>
+        <div class="sc-actions">
+          ${actionHTML}
+          <button class="btn btn-sm btn-ghost" data-sp-edit="${sp.id}">Edit</button>
+          <button class="btn btn-sm btn-danger" data-sp-del="${sp.id}">Delete</button>
+        </div>
+      </div>
+      ${sp.goal ? `<div class="sc-goal">🎯 ${esc(sp.goal)}</div>` : ''}
+      <div class="sc-stats">
+        <div class="sc-stat"><div class="sc-stat-label">Start</div><div class="sc-stat-value">${fmtDate(sp.startDate)}</div></div>
+        <div class="sc-stat"><div class="sc-stat-label">End</div><div class="sc-stat-value">${fmtDate(sp.endDate)}</div></div>
+        <div class="sc-stat"><div class="sc-stat-label">Days Left</div><div class="sc-stat-value ${leftCls}">${leftVal}</div></div>
+        <div class="sc-stat"><div class="sc-stat-label">Tasks</div><div class="sc-stat-value">${done.length}/${tasks.length}</div></div>
+        <div class="sc-stat"><div class="sc-stat-label">Points</div><div class="sc-stat-value">${donePts}/${totalPts}</div></div>
+        <div class="sc-stat"><div class="sc-stat-label">Progress</div><div class="sc-stat-value">${pct}%</div></div>
+      </div>
+      <div class="sc-progress"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div></div>
+      ${tasks.length ? `<div class="sc-chips">${chips}${moreChip}</div>` : ''}
+    </div>`;
+}
+
+// ─── Task Modal ───────────────────────────────────────────────────────────────
+function openCreateTask() {
+  st.editingTask = null;
+  document.getElementById('task-modal-heading').textContent = 'Create Task';
+  document.getElementById('task-save-btn').textContent      = 'Create Task';
+  document.getElementById('t-title').value     = '';
+  document.getElementById('t-desc').value      = '';
+  document.getElementById('t-status').value    = 'todo';
+  document.getElementById('t-priority').value  = 'medium';
+  document.getElementById('t-points').value    = '1';
+  document.getElementById('t-assignee').value  = '';
+  document.getElementById('t-due').value       = '';
+  document.getElementById('t-labels').value    = '';
+  fillSprintSelect(st.selectedSprint);
+  document.getElementById('task-modal').classList.remove('hidden');
+  document.getElementById('t-title').focus();
+}
+
+function openEditTask(id) {
+  const t = st.tasks.find(x => x.id === id);
+  if (!t) return;
+  st.editingTask = id;
+  document.getElementById('task-modal-heading').textContent = 'Edit Task';
+  document.getElementById('task-save-btn').textContent      = 'Save Changes';
+  document.getElementById('t-title').value     = t.title;
+  document.getElementById('t-desc').value      = t.description;
+  document.getElementById('t-status').value    = t.status;
+  document.getElementById('t-priority').value  = t.priority;
+  document.getElementById('t-points').value    = t.storyPoints;
+  document.getElementById('t-assignee').value  = t.assignee || '';
+  document.getElementById('t-due').value       = t.dueDate || '';
+  document.getElementById('t-labels').value    = (t.labels || []).join(', ');
+  fillSprintSelect(t.sprintId);
+  document.getElementById('task-modal').classList.remove('hidden');
+  document.getElementById('t-title').focus();
+}
+
+function fillSprintSelect(selectedId) {
+  const sel = document.getElementById('t-sprint');
+  sel.innerHTML = '<option value="">Backlog (no sprint)</option>';
+  st.sprints.filter(s => s.status !== 'completed').forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.id; o.textContent = `${s.name} (${s.type})`;
+    if (s.id === selectedId) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function closeTaskModal() {
+  document.getElementById('task-modal').classList.add('hidden');
+  st.editingTask = null;
+}
+
+function saveTaskModal() {
+  const titleEl = document.getElementById('t-title');
+  const title = titleEl.value.trim();
+  if (!title) { titleEl.classList.add('error'); titleEl.focus(); return; }
+  titleEl.classList.remove('error');
+
+  const data = {
+    title,
+    description:  document.getElementById('t-desc').value.trim(),
+    status:       document.getElementById('t-status').value,
+    priority:     document.getElementById('t-priority').value,
+    sprintId:     document.getElementById('t-sprint').value || null,
+    storyPoints:  parseInt(document.getElementById('t-points').value) || 1,
+    assignee:     document.getElementById('t-assignee').value.trim(),
+    dueDate:      document.getElementById('t-due').value || null,
+    labels:       document.getElementById('t-labels').value.split(',').map(s => s.trim()).filter(Boolean),
+  };
+
+  if (st.editingTask) editTask(st.editingTask, data);
+  else addTask(data);
+  closeTaskModal();
+  renderAll();
+}
+
+// ─── Sprint Modal ─────────────────────────────────────────────────────────────
+function openCreateSprint() {
+  st.editingSprint = null;
+  document.getElementById('sprint-modal-heading').textContent = 'Create Sprint';
+  document.getElementById('sprint-save-btn').textContent      = 'Create Sprint';
+  document.getElementById('s-name').value  = `Sprint ${st.sprints.length + 1}`;
+  document.getElementById('s-start').value = today();
+  document.getElementById('s-goal').value  = '';
+  st.sprintType = 'weekly';
+  syncTypeButtons();
+  document.getElementById('sprint-modal').classList.remove('hidden');
+  document.getElementById('s-name').focus();
+}
+
+function openEditSprint(id) {
+  const sp = st.sprints.find(s => s.id === id);
+  if (!sp) return;
+  st.editingSprint = id;
+  document.getElementById('sprint-modal-heading').textContent = 'Edit Sprint';
+  document.getElementById('sprint-save-btn').textContent      = 'Save Changes';
+  document.getElementById('s-name').value  = sp.name;
+  document.getElementById('s-start').value = sp.startDate;
+  document.getElementById('s-goal').value  = sp.goal || '';
+  st.sprintType = sp.type;
+  syncTypeButtons();
+  document.getElementById('sprint-modal').classList.remove('hidden');
+}
+
+function syncTypeButtons() {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === st.sprintType));
+}
+
+function closeSprintModal() {
+  document.getElementById('sprint-modal').classList.add('hidden');
+  st.editingSprint = null;
+}
+
+function saveSprintModal() {
+  const nameEl = document.getElementById('s-name');
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.classList.add('error'); nameEl.focus(); return; }
+  nameEl.classList.remove('error');
+
+  const data = {
+    name, type: st.sprintType,
+    startDate: document.getElementById('s-start').value || today(),
+    goal:      document.getElementById('s-goal').value.trim(),
+  };
+
+  if (st.editingSprint) editSprint(st.editingSprint, data);
+  else addSprint(data);
+  closeSprintModal();
+  renderAll();
+}
+
+// ─── Quick actions ────────────────────────────────────────────────────────────
+function advanceTask(id) {
+  const t = st.tasks.find(x => x.id === id);
+  if (!t) return;
+  editTask(id, { status: NEXT_STATUS[t.status] });
+  renderAll();
+}
+
+function confirmDeleteTask(id) {
+  if (confirm('Delete this task?')) { removeTask(id); renderAll(); }
+}
+
+function confirmDeleteSprint(id) {
+  const sp  = st.sprints.find(s => s.id === id);
+  if (!sp) return;
+  const cnt = st.tasks.filter(t => t.sprintId === id).length;
+  const msg = cnt
+    ? `Delete "${sp.name}"? ${cnt} task(s) will move to Backlog.`
+    : `Delete "${sp.name}"?`;
+  if (!confirm(msg)) return;
+  if (st.selectedSprint === id) st.selectedSprint = null;
+  removeSprint(id);
+  renderAll();
+}
+
+// ─── View switching ───────────────────────────────────────────────────────────
+function switchView(v) {
+  st.view = v;
+  document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+  document.getElementById(v + '-view').classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === v));
+  if (v === 'board')    renderBoard();
+  if (v === 'backlog')  renderBacklog();
+  if (v === 'sprints')  renderSprints();
+}
+
+// ─── renderAll ────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderSidebar();
+  if (st.view === 'board')   renderBoard();
+  if (st.view === 'backlog') renderBacklog();
+  if (st.view === 'sprints') renderSprints();
+}
+
+// ─── Init events ──────────────────────────────────────────────────────────────
+function initEvents() {
+  // Nav
+  document.querySelectorAll('.nav-btn').forEach(btn =>
+    btn.addEventListener('click', () => switchView(btn.dataset.view)));
+
+  // Header buttons
+  document.getElementById('new-task-btn').addEventListener('click', openCreateTask);
+  document.getElementById('new-sprint-btn').addEventListener('click', openCreateSprint);
+
+  // Task modal
+  document.getElementById('task-modal-close').addEventListener('click', closeTaskModal);
+  document.getElementById('task-cancel-btn').addEventListener('click', closeTaskModal);
+  document.getElementById('task-save-btn').addEventListener('click', saveTaskModal);
+  document.getElementById('task-backdrop').addEventListener('click', closeTaskModal);
+
+  // Sprint modal
+  document.getElementById('sprint-modal-close').addEventListener('click', closeSprintModal);
+  document.getElementById('sprint-cancel-btn').addEventListener('click', closeSprintModal);
+  document.getElementById('sprint-save-btn').addEventListener('click', saveSprintModal);
+  document.getElementById('sprint-backdrop').addEventListener('click', closeSprintModal);
+
+  // Sprint type buttons
+  document.querySelectorAll('.type-btn').forEach(btn =>
+    btn.addEventListener('click', () => { st.sprintType = btn.dataset.type; syncTypeButtons(); }));
+
+  // Board priority filter
+  document.getElementById('board-priority-filter').addEventListener('change', e => {
+    st.filters.priority = e.target.value; renderAll();
+  });
+
+  // Backlog filters
+  document.getElementById('bl-status-filter').addEventListener('change', e => {
+    st.filters.status = e.target.value; renderAll();
+  });
+  document.getElementById('bl-priority-filter').addEventListener('change', e => {
+    st.filters.priority = e.target.value; renderAll();
+  });
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', e => {
+    st.filters.search = e.target.value; renderAll();
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeTaskModal(); closeSprintModal(); }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'n') { e.preventDefault(); openCreateTask(); }
+  });
+}
+
+// ─── Bootstrap ────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  load();
+  initDropZones();
+  initEvents();
+
+  // Auto-select first active sprint on load
+  const active = st.sprints.find(s => s.status === 'active');
+  st.selectedSprint = active?.id ?? null;
+
+  renderAll();
+});
+
+</script>
+</body>
+</html>
